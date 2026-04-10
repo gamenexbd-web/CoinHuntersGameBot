@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monetag Safe Ads System</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!-- 🔥 DUAL ZONE -->
+<script src='//libtl.com/sdk.js' data-zone='10858631' data-sdk='show_10858631'></script>
+<script src='//libtl.com/sdk.js' data-zone='10858639' data-sdk='show_10858639'></script>
+
+<style>
+body{
+  margin:0;
+  height:100vh;
+  font-family:sans-serif;
+  background:radial-gradient(circle at top,#1a2a6c,#000);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#fff;
+}
+
+.card{
+  width:350px;
+  padding:25px;
+  border-radius:20px;
+  background:rgba(0,0,0,0.6);
+  text-align:center;
+}
+
+button{
+  padding:12px 15px;
+  border:none;
+  border-radius:10px;
+  background:#00e5ff;
+  color:#000;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.timer{
+  margin-top:10px;
+  font-size:18px;
+  color:#4caf50;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>🚀 Safe Ads System</h2>
+
+  <button onclick="enableAuto()">Auto Start</button>
+
+  <div class="timer">
+    Next Ads in <span id="countdown">20</span>s
+  </div>
+
+  <div class="timer">
+    Ads Watched: <span id="adCount">0</span>
+  </div>
+</div>
+
+<script>
+const tg = window.Telegram.WebApp;
+if(tg) tg.ready();
+
+let timerInterval;
+let timeLeft = 20;
+
+// ======================
+// DATA
+// ======================
+let adCount = localStorage.getItem("adCount")
+  ? parseInt(localStorage.getItem("adCount"))
+  : 0;
+
+document.getElementById("adCount").textContent = adCount;
+
+let currentZone = localStorage.getItem("zone")
+  ? parseInt(localStorage.getItem("zone"))
+  : 1;
+
+// ======================
+// SAFE AD SYSTEM
+// ======================
+async function safeShow(adFunc){
+
+  try{
+    if(typeof adFunc !== "function") return false;
+
+    await new Promise(r => setTimeout(r, 300));
+
+    await adFunc();
+
+    return true;
+
+  }catch(e){
+    console.log("Ad error:", e);
+    return false;
+  }
+}
+
+// ======================
+// SMART ADS
+// ======================
+async function showAdSmart(){
+
+  let success = false;
+
+  if(currentZone === 1){
+    success = await safeShow(show_10858631);
+
+    if(!success){
+      success = await safeShow(show_10858639);
+    }
+  }
+  else {
+    success = await safeShow(show_10858639);
+
+    if(!success){
+      success = await safeShow(show_10858631);
+    }
+  }
+
+  if(success){
+    adCount++;
+    localStorage.setItem("adCount", adCount);
+    document.getElementById("adCount").textContent = adCount;
+  }
+
+  currentZone = (currentZone === 1) ? 2 : 1;
+  localStorage.setItem("zone", currentZone);
+}
+
+// ======================
+// TIMER SYSTEM
+// ======================
+function startAutoTimer(){
+
+  clearInterval(timerInterval);
+
+  timeLeft = 20;
+  document.getElementById("countdown").textContent = timeLeft;
+
+  timerInterval = setInterval(() => {
+
+    timeLeft--;
+    document.getElementById("countdown").textContent = timeLeft;
+
+    if(timeLeft <= 0){
+      clearInterval(timerInterval);
+
+      setTimeout(() => {
+        showAdSmart().then(() => {
+          startAutoTimer();
+        });
+      }, 500);
+    }
+
+  }, 1000);
+}
+
+// ======================
+// START
+// ======================
+function enableAuto(){
+  localStorage.setItem("adMode","auto");
+
+  showAdSmart();
+  startAutoTimer();
+}
+
+// AUTO RUN
+window.addEventListener("load", () => {
+  localStorage.setItem("adMode","auto");
+
+  showAdSmart();
+  startAutoTimer();
+});
+</script>
+
+</body>
+</html>
